@@ -1,28 +1,23 @@
 const needle = require("needle");
 
-// Validate user input
-if (!process.argv[2]) {
-  console.error(
-    "Error: Missing arguments.\nUsage: > node breedFether.js <cat breed>"
-  );
-  process.exit(1);
-}
-
 const api = "https://api.thecatapi.com/v1/breeds/search?q=";
-const breedInput = process.argv[2].trim();
-const breedURL = api + breedInput;
 
-needle.get(breedURL, (error, response, body) => {
-  if (error) {
-    console.error("Error fetching data:", error);
-    process.exit(1);
-  }
+const fetchBreedDescription = function (breedName, callback) {
+  const breedURL = api + breedName;
 
-  // Ensure the body has at least one result and the description exists
-  if (body && body.length > 0 && body[0].description) {
-    console.log(body[0].description);
-  } else {
-    console.log(`Failed to fetch the breed: ${breedInput}`);
-    process.exit(1);
-  }
-});
+  needle.get(breedURL, (error, response, body) => {
+    if (error) {
+      callback(error, null); // Pass the error to the callback
+      return;
+    }
+
+    // Ensure the body has at least one result and the description exists
+    if (body && body.length > 0 && body[0].description) {
+      callback(null, body[0].description); // Pass description to callback
+    } else {
+      callback(`Failed to fetch the breed: ${breedName}`, null); // Pass error message to callback
+    }
+  });
+};
+
+module.exports = { fetchBreedDescription };
